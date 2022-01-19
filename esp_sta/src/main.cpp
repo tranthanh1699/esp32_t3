@@ -1,52 +1,29 @@
 #include <Arduino.h>
-#include <WiFi.h>
-#include <WebServer.h>
-#include "web.h"
+#include <ArduinoJson.h>
 
-WebServer server(8080); 
-
-const char * ssid = "Tran Thanh";
-const char * pass = "12345678";
-
-IPAddress apIP(192, 168, 16, 2); 
-IPAddress gateway(192, 168, 16, 2); 
-IPAddress subnet(255, 255, 255, 0); 
-
-String severD = ""; 
+String jsonData = "{\"loadcell\":\"12\",\"temp\":\"23\",\"data\":\"34\"}";
 
 void setup() {
-  // put your setup code here, to run once:
-  WiFi.mode(WIFI_STA); 
-  WiFi.begin(ssid, pass);
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(500); 
-
-  }
-  
-  // WiFi.mode(WIFI_AP);
-  // WiFi.softAP(ssid, pass);
-  // delay(2000); 
-  // WiFi.softAPConfig(apIP, gateway, subnet); 
   Serial.begin(115200); 
+  Serial.println(jsonData); 
+  DynamicJsonDocument doc(1024); 
 
-  Serial.println(" "); 
-  Serial.print("IP Address: "); 
-  // Serial.println(WiFi.softAPIP()); // 192.168.4.1
-  Serial.println(WiFi.localIP()); 
+  DeserializationError error = deserializeJson(doc, jsonData); 
+
+  if(error)
+  {
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.f_str());
+  }
+
+  String newValue = "16";
+  doc["data"] = newValue; 
+  jsonData = doc.as<String>(); 
+  jsonData = "[" + jsonData + "]";
+  Serial.println(jsonData); 
+
   
-  server.on("/", [] {
-    server.send(200, "text/html", webpage); 
-  }); 
-  server.on("/test", [] {
-    Serial.println("Request test"); 
-    Serial.println(server.arg("testcode")); 
-    server.send(200, "text/html", webpage); 
-  }); 
-
-  server.begin();
 }
 void loop() {
-  // put your main code here, to run repeatedly:
-  server.handleClient(); 
+
 }
